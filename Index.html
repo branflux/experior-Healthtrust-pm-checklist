@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Experior Mechanical - PM Checklist</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f6f7fb;color:#111}
+    .wrap{max-width:820px;margin:0 auto;padding:18px}
+    .card{background:#fff;border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+    h1{font-size:20px;margin:0 0 6px}
+    .sub{opacity:.75;margin:0 0 14px;font-size:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+    input,textarea{width:100%;padding:12px;border:1px solid #d9dce6;border-radius:10px;font-size:16px}
+    label{font-size:13px;opacity:.75}
+    .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+    .item{display:flex;gap:10px;align-items:flex-start;border:1px solid #eef0f6;padding:12px;border-radius:12px}
+    .item input{width:22px;height:22px;margin-top:2px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    button{border:0;border-radius:12px;padding:12px 14px;font-size:16px;cursor:pointer}
+    .primary{background:#111;color:#fff}
+    .ghost{background:#eef0f6}
+    .small{font-size:12px;opacity:.7;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Experior Mechanical Services — PM Checklist</h1>
+      <p class="sub">Fill this out on-site. Tap “Save” to keep it on your phone, or “Copy” to paste into text/email.</p>
+
+      <div class="row">
+        <div style="flex:1;min-width:220px">
+          <label>Tech Name</label>
+          <input id="tech" placeholder="e.g., Jose" />
+        </div>
+        <div style="flex:1;min-width:220px">
+          <label>Site / Customer</label>
+          <input id="site" placeholder="e.g., Hot Topic 261" />
+        </div>
+        <div style="flex:1;min-width:220px">
+          <label>Unit ID</label>
+          <input id="unit" placeholder="e.g., RTU-1 / Chiller-2" />
+        </div>
+      </div>
+
+      <div class="grid" id="checks">
+        <!-- You can edit this list anytime -->
+        <div class="item"><input type="checkbox"><div>Verify unit operation (heating/cooling) and note any alarms/faults</div></div>
+        <div class="item"><input type="checkbox"><div>Check filters (condition, size) and replace if needed</div></div>
+        <div class="item"><input type="checkbox"><div>Inspect belts / pulleys (wear, tension, alignment)</div></div>
+        <div class="item"><input type="checkbox"><div>Inspect coils (dirty, damaged) and recommend cleaning if needed</div></div>
+        <div class="item"><input type="checkbox"><div>Check drains & pan (clear, no standing water, treat if needed)</div></div>
+        <div class="item"><input type="checkbox"><div>Electrical inspection (tighten lugs if safe, look for hot spots/burn marks)</div></div>
+        <div class="item"><input type="checkbox"><div>Check blower / fan motors (amps, noise, bearings)</div></div>
+        <div class="item"><input type="checkbox"><div>Check refrigerant circuit (visual leaks, pressures/temps if applicable)</div></div>
+        <div class="item"><input type="checkbox"><div>Check thermostat / controls operation</div></div>
+        <div class="item"><input type="checkbox"><div>General condition / roof curb / panels / hail damage notes</div></div>
+      </div>
+
+      <div class="row">
+        <div style="flex:1;min-width:240px">
+          <label>Readings / Notes</label>
+          <textarea id="notes" rows="5" placeholder="Temps, pressures, amp draws, issues found, recommendations…"></textarea>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button class="primary" onclick="copyReport()">Copy report</button>
+        <button class="ghost" onclick="saveLocal()">Save on phone</button>
+        <button class="ghost" onclick="clearAll()">Clear</button>
+      </div>
+
+      <div class="small">
+        Tip: “Save on phone” stores it in your browser on that device. Use “Copy report” to paste into email/text to Lovely.
+      </div>
+    </div>
+  </div>
+
+<script>
+  const KEY = "ems_pm_checklist_v1";
+
+  function getChecks() {
+    return [...document.querySelectorAll("#checks .item")].map((el) => {
+      const checked = el.querySelector("input").checked;
+      const text = el.querySelector("div").innerText.trim();
+      return { checked, text };
+    });
+  }
+
+  function buildText() {
+    const tech = document.getElementById("tech").value.trim();
+    const site = document.getElementById("site").value.trim();
+    const unit = document.getElementById("unit").value.trim();
+    const notes = document.getElementById("notes").value.trim();
+    const checks = getChecks();
+
+    const lines = [];
+    lines.push("EMS PM CHECKLIST");
+    lines.push(`Tech: ${tech || "-"}`);
+    lines.push(`Site: ${site || "-"}`);
+    lines.push(`Unit: ${unit || "-"}`);
+    lines.push("");
+    lines.push("Checklist:");
+    checks.forEach(c => lines.push(`${c.checked ? "[x]" : "[ ]"} ${c.text}`));
+    lines.push("");
+    lines.push("Notes / Readings:");
+    lines.push(notes || "-");
+    return lines.join("\n");
+  }
+
+  function copyReport() {
+    const text = buildText();
+    navigator.clipboard.writeText(text).then(() => alert("Copied ✅"));
+  }
+
+  function saveLocal() {
+    const data = {
+      tech: document.getElementById("tech").value,
+      site: document.getElementById("site").value,
+      unit: document.getElementById("unit").value,
+      notes: document.getElementById("notes").value,
+      checks: getChecks(),
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(KEY, JSON.stringify(data));
+    alert("Saved ✅");
+  }
+
+  function clearAll() {
+    document.getElementById("tech").value = "";
+    document.getElementById("site").value = "";
+    document.getElementById("unit").value = "";
+    document.getElementById("notes").value = "";
+    document.querySelectorAll("#checks input[type=checkbox]").forEach(cb => cb.checked = false);
+    localStorage.removeItem(KEY);
+  }
+
+  // Load saved
+  (function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      document.getElementById("tech").value = data.tech || "";
+      document.getElementById("site").value = data.site || "";
+      document.getElementById("unit").value = data.unit || "";
+      document.getElementById("notes").value = data.notes || "";
+      const items = [...document.querySelectorAll("#checks .item")];
+      (data.checks || []).forEach((c, i) => {
+        if(items[i]) items[i].querySelector("input").checked = !!c.checked;
+      });
+    } catch(e) {}
+  })();
+</script>
+</body>
+</html>
